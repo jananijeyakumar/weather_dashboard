@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #74ebd5, #9face6);
+            text-align: center;
+            padding: 50px;
+        }
+
+        .container {
+            width: 400px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px #555;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            padding: 12px;
+            width: 60%;
+            border: 1px solid #aaa;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #4a69bd;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1e3799;
+        }
+
+        #error {
+            color: red;
+            margin-top: 15px;
+        }
+
+        .weather-card {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f1f6ff;
+            border-radius: 15px;
+        }
+
+        .temperature {
+            font-size: 35px;
+            font-weight: bold;
+            margin: 15px;
+        }
+
+        .condition {
+            font-size: 20px;
+            margin: 15px;
+        }
+
+        .details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .details div {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>🌤️ Weather Dashboard</h1>
+
+        <input type="text" id="cityInput" placeholder="Enter city name">
+
+        <button onclick="getWeather()">Search</button>
+
+        <div id="error"></div>
+
+        <div class="weather-card">
+
+            <h2 id="cityName">City Name</h2>
+
+            <div class="temperature">
+                <span id="temperature">--</span>
+                <span>°C</span>
+            </div>
+
+            <div class="condition">
+                <span id="condition">Weather</span>
+            </div>
+
+            <div class="details">
+
+                <div>
+                    <span>💧 Humidity</span>
+                    <span id="humidity">--%</span>
+                </div>
+
+                <div>
+                    <span>💨 Wind Speed</span>
+                    <span id="wind">-- m/s</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+       async function getWeather() {
+
+    let city = document.getElementById("cityInput").value;
+
+    if (city == "") {
+        document.getElementById("error").innerHTML =
+            "Please enter a city name";
+        return;
+    }
+
+    let apiKey = "YOUR_API_KEY";
+
+    try {
+        let locationUrl =
+            "https://geocoding-api.open-meteo.com/v1/search?name="
+            + city
+            + "&count=1&language=en&format=json";
+
+        let locationResponse = await fetch(locationUrl);
+
+        if (!locationResponse.ok) {
+            throw new Error("Location not found");
+        }
+
+        let locationData = await locationResponse.json();
+
+        if (!locationData.results) {
+            throw new Error("City not found");
+        }
+
+        let latitude = locationData.results[0].latitude;
+        let longitude = locationData.results[0].longitude;
+        let cityName = locationData.results[0].name;
+        let weatherUrl =
+            "https://api.open-meteo.com/v1/forecast?latitude="
+            + latitude
+            + "&longitude="
+            + longitude
+            + "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m";
+
+        let weatherResponse = await fetch(weatherUrl);
+
+        if (!weatherResponse.ok) {
+            throw new Error("Weather data not found");
+        }
+
+        let weatherData = await weatherResponse.json();
+
+        document.getElementById("error").innerHTML = "";
+
+        // Step 3: Display data
+        document.getElementById("cityName").innerHTML =
+            cityName;
+
+        document.getElementById("temperature").innerHTML =
+            weatherData.current.temperature_2m;
+
+        document.getElementById("humidity").innerHTML =
+            weatherData.current.relative_humidity_2m + "%";
+
+        document.getElementById("wind").innerHTML =
+            weatherData.current.wind_speed_10m + " km/h";
+
+        document.getElementById("condition").innerHTML =
+            "Current Weather";
+
+    }
+
+    catch(error) {
+
+        console.log(error);
+
+        document.getElementById("error").innerHTML =
+            "❌ City not found";
+
+        document.getElementById("cityName").innerHTML =
+            "City Name";
+
+        document.getElementById("temperature").innerHTML =
+            "--";
+
+        document.getElementById("condition").innerHTML =
+            "Weather";
+
+        document.getElementById("humidity").innerHTML =
+            "--%";
+
+        document.getElementById("wind").innerHTML =
+            "-- km/h";
+    }
+}
+
+    </script>
+
+</body>
+</html>
